@@ -4,9 +4,8 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 class JwtUtils {
   static String get secret =>
-      Platform.environment['JWT_SECRET'] ?? 'my_super_secret_jwt_key_2026_production!';
+      Platform.environment['JWT_SECRET'] ?? 'my_api_jwt_secret_key_dev';
 
-  /// Sign a JWT token for the given user.
   static String signToken(String userId, String email) {
     final jwt = JWT(
       {
@@ -23,7 +22,6 @@ class JwtUtils {
     );
   }
 
-  /// Verify token and return payload, or null if invalid/expired.
   static Map<String, dynamic>? verifyToken(String token) {
     try {
       final jwt = JWT.verify(token, SecretKey(secret), issuer: 'my_api');
@@ -36,7 +34,6 @@ class JwtUtils {
     }
   }
 
-  /// Extract and verify token from Dart Frog request header.
   static Map<String, dynamic>? getUserFromContext(RequestContext context) {
     final authHeader = context.request.headers['authorization'] ??
         context.request.headers['Authorization'];

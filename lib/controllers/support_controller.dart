@@ -33,7 +33,6 @@ class SupportService {
     };
     await Database.supportChats.insertOne(userMsg);
 
-    // Automated helpful assistant response
     final botResponse = {
       '_id': ObjectId(),
       'userId': userId,

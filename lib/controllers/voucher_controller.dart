@@ -87,7 +87,6 @@ class VoucherService {
 
     final discountAmount = (points / 100) * 5.0;
 
-    // Record in history
     await Database.loyaltyHistory.insertOne({
       '_id': ObjectId(),
       'userId': userId,
@@ -150,7 +149,6 @@ class VoucherService {
       'createdAt': now,
     });
 
-    // Award points to referrer and referee
     await Database.users.updateOne(
       where.eq('_id', parseId(referrerId)),
       modify.inc('loyaltyPoints', 150),

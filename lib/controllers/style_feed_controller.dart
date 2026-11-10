@@ -16,7 +16,6 @@ class StyleFeedService {
       final likedBy = (doc['likedByUserIds'] as List?)?.map((e) => e.toString()).toList() ?? [];
       cleaned['isLiked'] = userId != null && likedBy.contains(userId);
 
-      // Populate tagged products
       final taggedIds = (doc['taggedProductIds'] as List?) ?? [];
       if (taggedIds.isNotEmpty) {
         final products = await Database.products.find({

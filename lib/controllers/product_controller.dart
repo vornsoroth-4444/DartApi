@@ -40,7 +40,6 @@ class ProductService {
       selector = selector.eq(entry.key, entry.value);
     }
 
-    // Sort order
     if (sort == 'price-asc') {
       selector = selector.sortBy('price');
     } else if (sort == 'price-desc') {
@@ -155,6 +154,71 @@ class ProductService {
     result['products'] = cleanDocs(products);
     return result;
   }
+
+  static Future<Map<String, dynamic>> createProduct(Map<String, dynamic> data) async {
+    await Database.ensureConnected();
+
+    final name = (data['name'] ?? '').toString().trim();
+    if (name.isEmpty) {
+      throw const FormatException('Product name is required');
+    }
+
+    if (data['price'] == null) {
+      throw const FormatException('Product price is required');
+    }
+    final price = parseDouble(data['price']);
+    if (price < 0) {
+      throw const FormatException('Product price cannot be negative');
+    }
+
+    final category = (data['category'] ?? '').toString().trim();
+    final brand = (data['brand'] ?? '').toString().trim();
+
+    var slug = (data['slug'] ?? '').toString().trim();
+    if (slug.isEmpty) {
+      slug = name.toLowerCase().replaceAll(RegExp('[^a-z0-9]+'), '-').replaceAll(RegExp(r'^-|-$'), '');
+    }
+
+    final existing = await Database.products.findOne(where.eq('slug', slug));
+    if (existing != null) {
+      slug = '$slug-${DateTime.now().millisecondsSinceEpoch % 10000}';
+    }
+
+    final images = data['images'] is List
+        ? (data['images'] as List).map((e) => e.toString()).toList()
+        : <String>[];
+
+    final thumbnail = data['thumbnail']?.toString() ?? (images.isNotEmpty ? images.first : null);
+
+    final now = DateTime.now().toUtc();
+    final doc = {
+      '_id': ObjectId(),
+      'name': name,
+      'slug': slug,
+      'description': data['description']?.toString().trim() ?? '',
+      'price': price,
+      if (data['compareAtPrice'] != null) 'compareAtPrice': parseDouble(data['compareAtPrice']),
+      'category': category,
+      'categoryId': data['categoryId']?.toString() ?? category.toLowerCase().replaceAll(' ', '-'),
+      'brand': brand,
+      'brandSlug': data['brandSlug']?.toString() ?? brand.toLowerCase().replaceAll(' ', '-'),
+      'images': images,
+      if (thumbnail != null) 'thumbnail': thumbnail,
+      'stock': parseInt(data['stock'], 0),
+      'isNew': data['isNew'] == true || data['isNew'] == null,
+      'rating': parseDouble(data['rating'], 0.0),
+      'reviewCount': parseInt(data['reviewCount'], 0),
+      'colors': data['colors'] is List ? (data['colors'] as List).map((e) => e.toString()).toList() : <String>[],
+      'sizes': data['sizes'] is List ? (data['sizes'] as List).map((e) => e.toString()).toList() : <String>[],
+      'tags': data['tags'] is List ? (data['tags'] as List).map((e) => e.toString()).toList() : <String>[],
+      if (data['flashSale'] is Map) 'flashSale': data['flashSale'],
+      'createdAt': now,
+      'updatedAt': now,
+    };
+
+    await Database.products.insertOne(doc);
+    return cleanDoc(doc)!;
+  }
 }
 
 class ProductController {
@@ -227,5 +291,15 @@ class ProductController {
       return jsonError('Brand not found', statusCode: HttpStatus.notFound);
     }
     return jsonSuccess(data);
+  }
+
+  static Future<Response> create(RequestContext context) async {
+    try {
+      final body = await readJsonBody(context);
+      final product = await ProductService.createProduct(body);
+      return jsonSuccess(product, statusCode: HttpStatus.created, message: 'Product created');
+    } catch (e) {
+      return jsonError(e.toString().replaceAll('FormatException: ', ''));
+    }
   }
 }

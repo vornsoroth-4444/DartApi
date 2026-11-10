@@ -42,7 +42,6 @@ class Database {
     return _db!;
   }
 
-  /// Ensures database is connected before executing queries.
   static Future<Db> ensureConnected() async {
     if (_db == null || !_db!.isConnected) {
       return connect();

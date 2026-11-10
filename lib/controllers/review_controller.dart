@@ -61,7 +61,6 @@ class ReviewService {
 
     await Database.reviews.insertOne(reviewDoc);
 
-    // Recalculate average rating for product
     final allReviews = await Database.reviews.find({
       r'$or': [
         {'productId': productId},

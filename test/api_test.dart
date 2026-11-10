@@ -1,3 +1,4 @@
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:my_api/controllers/auth_controller.dart';
 import 'package:my_api/controllers/cart_controller.dart';
 import 'package:my_api/controllers/order_controller.dart';
@@ -53,6 +54,45 @@ void main() {
 
       final flashDeals = await ProductService.getFlashDeals();
       expect(flashDeals, isNotEmpty);
+    });
+
+    test('Creates a new product', () async {
+      final product = await ProductService.createProduct({
+        'name': 'Nike Air Zoom Pegasus Test',
+        'price': 129.99,
+        'category': 'Footwear',
+        'brand': 'Nike',
+        'stock': 50,
+        'images': [
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff',
+        ],
+      });
+
+      expect(product['id'], isNotNull);
+      expect(product['name'], equals('Nike Air Zoom Pegasus Test'));
+      expect(product['price'], equals(129.99));
+      expect(product['stock'], equals(50));
+
+      final fetched = await ProductService.getProduct(product['id'].toString());
+      expect(fetched, isNotNull);
+      expect(fetched?['name'], equals('Nike Air Zoom Pegasus Test'));
+
+      await Database.products.remove(where.eq('name', 'Nike Air Zoom Pegasus Test'));
+    });
+
+    test('Rejects product creation with missing name or invalid price', () async {
+      expect(
+        () => ProductService.createProduct({'price': 50.0}),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => ProductService.createProduct({'name': 'Missing Price'}),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => ProductService.createProduct({'name': 'Negative Price', 'price': -10.0}),
+        throwsA(isA<FormatException>()),
+      );
     });
   });
 

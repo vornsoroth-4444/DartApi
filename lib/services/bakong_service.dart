@@ -28,13 +28,11 @@ class BakongService {
   static String get city =>
       Platform.environment['KHQR_CITY'] ?? 'Phnom Penh';
 
-  /// Standard EMVCo TLV (Tag-Length-Value) formatting
   static String formatTlv(String tag, String value) {
     final length = utf8.encode(value).length.toString().padLeft(2, '0');
     return '$tag$length$value';
   }
 
-  /// CRC-16/CCITT-FALSE algorithm (Polynomial: 0x1021, Initial value: 0xFFFF)
   static int calculateCrc16(String input) {
     int crc = 0xFFFF;
     final bytes = utf8.encode(input);
@@ -51,12 +49,10 @@ class BakongService {
     return crc;
   }
 
-  /// Calculates MD5 hash of the raw KHQR string
   static String getMd5(String rawQr) {
     return md5.convert(utf8.encode(rawQr)).toString();
   }
 
-  /// Generates an EMVCo compliant Dynamic Bakong KHQR String
   static String buildKhqrString({
     required double amount,
     required String billNumber,
@@ -129,7 +125,6 @@ class BakongService {
     return '$preCrc$crcVal';
   }
 
-  /// Generate Deeplink via official Bakong Open API
   static Future<Map<String, dynamic>?> generateDeeplink({
     required String qrString,
     String appName = 'E-Commerce Store',
@@ -169,7 +164,6 @@ class BakongService {
     }
   }
 
-  /// Full Bakong KHQR generation with MD5 and Deeplink
   static Future<Map<String, dynamic>> createKhqrPayment({
     required double amount,
     required String billNumber,
@@ -187,7 +181,6 @@ class BakongService {
 
     final md5Hash = getMd5(qrString);
 
-    // Call Bakong API to obtain shortLink deeplink
     final deeplinkData = await generateDeeplink(
       qrString: qrString,
       appName: appName,
@@ -210,11 +203,6 @@ class BakongService {
     };
   }
 
-  /// Check payment transaction status using MD5 hash via Bakong API
-  ///
-  /// Response:
-  /// - `isPaid`: true if transaction has completed and money was deducted from customer's bank
-  /// - `responseCode`: 0 = Success (Paid), 1 = Transaction not found (Pending)
   static Future<Map<String, dynamic>> checkTransactionByMd5(String md5Hash) async {
     final client = HttpClient();
     try {
@@ -249,7 +237,6 @@ class BakongService {
     }
   }
 
-  /// Verify active status of a Bakong Account ID
   static Future<Map<String, dynamic>> checkAccount(String account) async {
     final client = HttpClient();
     try {

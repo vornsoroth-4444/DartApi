@@ -6,5 +6,8 @@ Future<Response> onRequest(RequestContext context) async {
   if (context.request.method == HttpMethod.get) {
     return ProductController.list(context);
   }
+  if (context.request.method == HttpMethod.post) {
+    return ProductController.create(context);
+  }
   return Response(statusCode: HttpStatus.methodNotAllowed);
 }

@@ -60,7 +60,7 @@ class AuthService {
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
       'provider': 'local',
       'referralCode': 'USER${HashUtils.generateNumericOtp(4)}',
-      'loyaltyPoints': 100, // 100 welcome bonus points
+      'loyaltyPoints': 100,
       'loyaltyTier': 'Bronze',
       'createdAt': now,
       'updatedAt': now,
@@ -68,7 +68,6 @@ class AuthService {
 
     await Database.users.insertOne(userDoc);
 
-    // Initial notification settings
     await Database.notificationSettings.insertOne({
       '_id': ObjectId(),
       'userId': userId.oid,

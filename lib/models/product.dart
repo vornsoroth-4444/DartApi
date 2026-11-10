@@ -9,6 +9,8 @@ class Product {
     required this.brand,
     required this.images,
     required this.stock,
+    this.categoryId,
+    this.brandSlug,
     this.compareAtPrice,
     this.thumbnail,
     this.isNew = false,
@@ -20,6 +22,31 @@ class Product {
     this.flashSale,
   });
 
+  factory Product.fromJson(Map<String, dynamic> json) => Product(
+        id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
+        name: json['name']?.toString() ?? '',
+        slug: json['slug']?.toString() ?? '',
+        description: json['description']?.toString() ?? '',
+        price: (json['price'] as num?)?.toDouble() ?? 0.0,
+        compareAtPrice: (json['compareAtPrice'] as num?)?.toDouble(),
+        category: json['category']?.toString() ?? '',
+        categoryId: json['categoryId']?.toString(),
+        brand: json['brand']?.toString() ?? '',
+        brandSlug: json['brandSlug']?.toString(),
+        images: (json['images'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        thumbnail: json['thumbnail']?.toString(),
+        stock: (json['stock'] as num?)?.toInt() ?? 0,
+        isNew: json['isNew'] == true,
+        rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
+        reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
+        colors: (json['colors'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        sizes: (json['sizes'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        tags: (json['tags'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        flashSale: json['flashSale'] is Map<String, dynamic>
+            ? Map<String, dynamic>.from(json['flashSale'] as Map)
+            : null,
+      );
+
   final String id;
   final String name;
   final String slug;
@@ -27,7 +54,9 @@ class Product {
   final double price;
   final double? compareAtPrice;
   final String category;
+  final String? categoryId;
   final String brand;
+  final String? brandSlug;
   final List<String> images;
   final String? thumbnail;
   final int stock;
@@ -47,7 +76,9 @@ class Product {
         'price': price,
         'compareAtPrice': compareAtPrice,
         'category': category,
+        if (categoryId != null) 'categoryId': categoryId,
         'brand': brand,
+        if (brandSlug != null) 'brandSlug': brandSlug,
         'images': images,
         'thumbnail': thumbnail,
         'stock': stock,

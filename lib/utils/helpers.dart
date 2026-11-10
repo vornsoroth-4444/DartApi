@@ -4,7 +4,6 @@ import 'package:dart_frog/dart_frog.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
-/// Safely parse an ID into an ObjectId if it matches the 24-hex pattern, otherwise returns original.
 dynamic parseId(dynamic id) {
   if (id == null) return null;
   if (id is ObjectId) return id;
@@ -17,7 +16,6 @@ dynamic parseId(dynamic id) {
   return str;
 }
 
-/// Selector filter matching either ObjectId or String representation.
 Map<String, dynamic> idFilter(String id, {String key = '_id'}) {
   final parsed = parseId(id);
   if (parsed is ObjectId) {
@@ -31,7 +29,6 @@ Map<String, dynamic> idFilter(String id, {String key = '_id'}) {
   return {key: id};
 }
 
-/// Recursively cleans an arbitrary value ensuring BSON / fixnum types are standard JSON serializable.
 dynamic cleanValue(dynamic val) {
   if (val == null) return null;
   if (val is ObjectId) return val.oid;
@@ -53,7 +50,6 @@ dynamic cleanValue(dynamic val) {
   return val;
 }
 
-/// Formats MongoDB document ensuring `_id` and nested objects are JSON serializable.
 Map<String, dynamic>? cleanDoc(Map<String, dynamic>? doc) {
   if (doc == null) return null;
   final result = <String, dynamic>{};

@@ -28,7 +28,6 @@ class PaymentMethodService {
       );
     }
 
-    // Never store full card number or CVV!
     final doc = {
       '_id': ObjectId(),
       'userId': userId,

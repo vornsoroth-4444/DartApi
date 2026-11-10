@@ -66,7 +66,6 @@ class DatabaseSeeder {
   static Future<void> seedAll() async {
     final now = DateTime.now().toUtc();
 
-    // 1. Default User
     final demoUserId = ObjectId();
     final demoSalt = HashUtils.generateSalt();
     final demoHash = HashUtils.hashPassword('Password123!', demoSalt);
@@ -104,7 +103,6 @@ class DatabaseSeeder {
       'updatedAt': now,
     });
 
-    // 2. Categories
     final categoriesData = [
       {
         '_id': ObjectId(),
@@ -154,7 +152,6 @@ class DatabaseSeeder {
     ];
     await Database.categories.insertMany(categoriesData);
 
-    // 3. Brands
     final brandsData = [
       {
         '_id': ObjectId(),
@@ -212,7 +209,6 @@ class DatabaseSeeder {
     ];
     await Database.brands.insertMany(brandsData);
 
-    // 4. Products
     final p1Id = ObjectId();
     final p2Id = ObjectId();
     final p3Id = ObjectId();
@@ -407,7 +403,6 @@ class DatabaseSeeder {
     ];
     await Database.products.insertMany(productsData);
 
-    // 5. Reviews
     final reviewsData = [
       {
         '_id': ObjectId(),
@@ -451,7 +446,6 @@ class DatabaseSeeder {
     ];
     await Database.reviews.insertMany(reviewsData);
 
-    // 6. Address
     await Database.addresses.insertOne({
       '_id': ObjectId(),
       'userId': demoUserIdStr,
@@ -468,7 +462,6 @@ class DatabaseSeeder {
       'updatedAt': now,
     });
 
-    // 7. Payment Method
     await Database.paymentMethods.insertOne({
       '_id': ObjectId(),
       'userId': demoUserIdStr,
@@ -484,7 +477,6 @@ class DatabaseSeeder {
       'updatedAt': now,
     });
 
-    // 8. Vouchers
     final vouchersData = [
       {
         '_id': ObjectId(),
@@ -524,7 +516,6 @@ class DatabaseSeeder {
     ];
     await Database.vouchers.insertMany(vouchersData);
 
-    // 9. FAQs
     final faqsData = [
       {
         '_id': ObjectId(),
@@ -557,7 +548,6 @@ class DatabaseSeeder {
     ];
     await Database.faqs.insertMany(faqsData);
 
-    // 10. Style Feed
     final stylePosts = [
       {
         '_id': ObjectId(),
@@ -598,7 +588,6 @@ class DatabaseSeeder {
     ];
     await Database.styleFeed.insertMany(stylePosts);
 
-    // 11. Notifications
     await Database.notifications.insertOne({
       '_id': ObjectId(),
       'userId': demoUserIdStr,

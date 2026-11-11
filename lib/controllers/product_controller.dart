@@ -65,7 +65,7 @@ class ProductService {
     };
   }
 
-  static Future<Map<String, dynamic>?> getProduct(String idOrSlug) async {
+  static Future<Map<String, dynamic>?> _findProductRaw(String idOrSlug) async {
     await Database.ensureConnected();
     final parsed = parseId(idOrSlug);
     Map<String, dynamic>? doc;
@@ -76,7 +76,13 @@ class ProductService {
 
     doc ??= await Database.products.findOne(where.eq('slug', idOrSlug));
     doc ??= await Database.products.findOne(where.eq('id', idOrSlug));
+    doc ??= await Database.products.findOne(where.eq('_id', idOrSlug));
 
+    return doc;
+  }
+
+  static Future<Map<String, dynamic>?> getProduct(String idOrSlug) async {
+    final doc = await _findProductRaw(idOrSlug);
     return cleanDoc(doc);
   }
 
@@ -219,6 +225,165 @@ class ProductService {
     await Database.products.insertOne(doc);
     return cleanDoc(doc)!;
   }
+
+  static Future<Map<String, dynamic>?> updateProduct(
+    String idOrSlug,
+    Map<String, dynamic> data,
+  ) async {
+    await Database.ensureConnected();
+
+    final existing = await _findProductRaw(idOrSlug);
+    if (existing == null) {
+      return null;
+    }
+
+    final targetId = existing['_id'];
+    final modifier = modify.set('updatedAt', DateTime.now().toUtc());
+
+    if (data.containsKey('name')) {
+      final name = data['name']?.toString().trim() ?? '';
+      if (name.isEmpty) {
+        throw const FormatException('Product name cannot be empty');
+      }
+      modifier.set('name', name);
+    }
+
+    if (data.containsKey('price')) {
+      if (data['price'] == null) {
+        throw const FormatException('Product price cannot be null');
+      }
+      final price = parseDouble(data['price']);
+      if (price < 0) {
+        throw const FormatException('Product price cannot be negative');
+      }
+      modifier.set('price', price);
+    }
+
+    if (data.containsKey('compareAtPrice')) {
+      modifier.set(
+        'compareAtPrice',
+        data['compareAtPrice'] != null ? parseDouble(data['compareAtPrice']) : null,
+      );
+    }
+
+    if (data.containsKey('description')) {
+      modifier.set('description', data['description']?.toString().trim() ?? '');
+    }
+
+    if (data.containsKey('category')) {
+      final category = data['category']?.toString().trim() ?? '';
+      modifier.set('category', category);
+      if (!data.containsKey('categoryId')) {
+        modifier.set('categoryId', category.toLowerCase().replaceAll(' ', '-'));
+      }
+    }
+
+    if (data.containsKey('categoryId')) {
+      modifier.set('categoryId', data['categoryId']?.toString().trim() ?? '');
+    }
+
+    if (data.containsKey('brand')) {
+      final brand = data['brand']?.toString().trim() ?? '';
+      modifier.set('brand', brand);
+      if (!data.containsKey('brandSlug')) {
+        modifier.set('brandSlug', brand.toLowerCase().replaceAll(' ', '-'));
+      }
+    }
+
+    if (data.containsKey('brandSlug')) {
+      modifier.set('brandSlug', data['brandSlug']?.toString().trim() ?? '');
+    }
+
+    if (data.containsKey('slug')) {
+      var slug = data['slug']?.toString().trim() ?? '';
+      if (slug.isNotEmpty) {
+        final existingWithSlug = await Database.products.findOne(
+          where.eq('slug', slug).ne('_id', targetId),
+        );
+        if (existingWithSlug != null) {
+          slug = '$slug-${DateTime.now().millisecondsSinceEpoch % 10000}';
+        }
+        modifier.set('slug', slug);
+      }
+    }
+
+    if (data.containsKey('images')) {
+      final images = data['images'] is List
+          ? (data['images'] as List).map((e) => e.toString()).toList()
+          : <String>[];
+      modifier.set('images', images);
+      if (!data.containsKey('thumbnail') && images.isNotEmpty) {
+        modifier.set('thumbnail', images.first);
+      }
+    }
+
+    if (data.containsKey('thumbnail')) {
+      modifier.set('thumbnail', data['thumbnail']?.toString());
+    }
+
+    if (data.containsKey('stock')) {
+      if (data['stock'] == null) {
+        throw const FormatException('Product stock cannot be null');
+      }
+      final stock = parseInt(data['stock']);
+      if (stock < 0) {
+        throw const FormatException('Product stock cannot be negative');
+      }
+      modifier.set('stock', stock);
+    }
+
+    if (data.containsKey('isNew')) {
+      modifier.set('isNew', data['isNew'] == true);
+    }
+
+    if (data.containsKey('rating')) {
+      modifier.set('rating', parseDouble(data['rating'], 0.0));
+    }
+
+    if (data.containsKey('reviewCount')) {
+      modifier.set('reviewCount', parseInt(data['reviewCount'], 0));
+    }
+
+    if (data.containsKey('colors')) {
+      final colors = data['colors'] is List
+          ? (data['colors'] as List).map((e) => e.toString()).toList()
+          : <String>[];
+      modifier.set('colors', colors);
+    }
+
+    if (data.containsKey('sizes')) {
+      final sizes = data['sizes'] is List
+          ? (data['sizes'] as List).map((e) => e.toString()).toList()
+          : <String>[];
+      modifier.set('sizes', sizes);
+    }
+
+    if (data.containsKey('tags')) {
+      final tags = data['tags'] is List
+          ? (data['tags'] as List).map((e) => e.toString()).toList()
+          : <String>[];
+      modifier.set('tags', tags);
+    }
+
+    if (data.containsKey('flashSale')) {
+      modifier.set('flashSale', data['flashSale'] is Map ? data['flashSale'] : null);
+    }
+
+    await Database.products.updateOne(where.eq('_id', targetId), modifier);
+
+    final updated = await Database.products.findOne(where.eq('_id', targetId));
+    return cleanDoc(updated);
+  }
+
+  static Future<bool> deleteProduct(String idOrSlug) async {
+    await Database.ensureConnected();
+    final existing = await _findProductRaw(idOrSlug);
+    if (existing == null) {
+      return false;
+    }
+    await Database.products.remove(where.eq('_id', existing['_id']));
+    return true;
+  }
 }
 
 class ProductController {
@@ -298,6 +463,31 @@ class ProductController {
       final body = await readJsonBody(context);
       final product = await ProductService.createProduct(body);
       return jsonSuccess(product, statusCode: HttpStatus.created, message: 'Product created');
+    } catch (e) {
+      return jsonError(e.toString().replaceAll('FormatException: ', ''));
+    }
+  }
+
+  static Future<Response> update(RequestContext context, String id) async {
+    try {
+      final body = await readJsonBody(context);
+      final product = await ProductService.updateProduct(id, body);
+      if (product == null) {
+        return jsonError('Product not found', statusCode: HttpStatus.notFound);
+      }
+      return jsonSuccess(product, message: 'Product updated');
+    } catch (e) {
+      return jsonError(e.toString().replaceAll('FormatException: ', ''));
+    }
+  }
+
+  static Future<Response> delete(RequestContext context, String id) async {
+    try {
+      final deleted = await ProductService.deleteProduct(id);
+      if (!deleted) {
+        return jsonError('Product not found', statusCode: HttpStatus.notFound);
+      }
+      return jsonSuccess({'id': id}, message: 'Product deleted');
     } catch (e) {
       return jsonError(e.toString().replaceAll('FormatException: ', ''));
     }

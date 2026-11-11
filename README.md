@@ -48,7 +48,10 @@ BAKONG_PHONE_NUMBER=067687806
 ### Products & Categories (`/api/v1/products`, `/api/v1/categories`, `/api/v1/brands`)
 - `GET /api/v1/products` - List products (filters: category, brand, minPrice, maxPrice, sort, page, limit)
 - `POST /api/v1/products` - Create new product
-- `GET /api/v1/products/:id` - Product details
+- `GET /api/v1/products/:id` - Product details (lookup by ID or slug)
+- `PUT /api/v1/products/:id` - Replace/update product
+- `PATCH /api/v1/products/:id` - Partially update product
+- `DELETE /api/v1/products/:id` - Delete product
 - `GET /api/v1/products/new-arrivals` - New arrivals
 - `GET /api/v1/products/flash-deals` - Flash deals
 - `GET /api/v1/products/search?q=` - Search products

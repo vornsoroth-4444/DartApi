@@ -94,6 +94,50 @@ void main() {
         throwsA(isA<FormatException>()),
       );
     });
+
+    test('Updates an existing product', () async {
+      final product = await ProductService.createProduct({
+        'name': 'Service Update Test Product',
+        'price': 45.0,
+        'category': 'Electronics',
+        'brand': 'Sony',
+        'stock': 10,
+      });
+
+      final productId = product['id'].toString();
+      final updated = await ProductService.updateProduct(productId, {
+        'name': 'Service Update Test Product Renamed',
+        'price': 49.99,
+        'stock': 15,
+      });
+
+      expect(updated, isNotNull);
+      expect(updated?['name'], equals('Service Update Test Product Renamed'));
+      expect(updated?['price'], equals(49.99));
+      expect(updated?['stock'], equals(15));
+
+      await ProductService.deleteProduct(productId);
+    });
+
+    test('Deletes an existing product', () async {
+      final product = await ProductService.createProduct({
+        'name': 'Service Delete Test Product',
+        'price': 30.0,
+        'category': 'Sports',
+        'brand': 'Adidas',
+        'stock': 5,
+      });
+
+      final productId = product['id'].toString();
+      final deleted = await ProductService.deleteProduct(productId);
+      expect(deleted, isTrue);
+
+      final fetched = await ProductService.getProduct(productId);
+      expect(fetched, isNull);
+
+      final deleteAgain = await ProductService.deleteProduct(productId);
+      expect(deleteAgain, isFalse);
+    });
   });
 
   group('Cart & Voucher Service', () {

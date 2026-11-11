@@ -68,6 +68,52 @@ class Product {
   final List<String> tags;
   final Map<String, dynamic>? flashSale;
 
+  Product copyWith({
+    String? id,
+    String? name,
+    String? slug,
+    String? description,
+    double? price,
+    double? compareAtPrice,
+    String? category,
+    String? categoryId,
+    String? brand,
+    String? brandSlug,
+    List<String>? images,
+    String? thumbnail,
+    int? stock,
+    bool? isNew,
+    double? rating,
+    int? reviewCount,
+    List<String>? colors,
+    List<String>? sizes,
+    List<String>? tags,
+    Map<String, dynamic>? flashSale,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      slug: slug ?? this.slug,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      compareAtPrice: compareAtPrice ?? this.compareAtPrice,
+      category: category ?? this.category,
+      categoryId: categoryId ?? this.categoryId,
+      brand: brand ?? this.brand,
+      brandSlug: brandSlug ?? this.brandSlug,
+      images: images ?? this.images,
+      thumbnail: thumbnail ?? this.thumbnail,
+      stock: stock ?? this.stock,
+      isNew: isNew ?? this.isNew,
+      rating: rating ?? this.rating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      colors: colors ?? this.colors,
+      sizes: sizes ?? this.sizes,
+      tags: tags ?? this.tags,
+      flashSale: flashSale ?? this.flashSale,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
